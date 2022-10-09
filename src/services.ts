@@ -2,8 +2,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import Database from "tauri-plugin-sql-api";
 import { User, Credential } from "./models";
 
-let db: Database | null = null;
-
+let db: Database;
 export const load = () =>
   Database.load("sqlite:manager.db")
     .then((instance) => {
@@ -15,7 +14,7 @@ export const load = () =>
     });
 
 export const checkDb = () => {
-  if (db === null) {
+  if (db === undefined) {
     throw new Error("Base de datos no ha sido cargada");
   }
 };
@@ -27,7 +26,7 @@ export async function registerUser({
   first_name = "",
   last_name = "",
 }: User) {
-  if (!db) throw new Error("Base de datos no ha sido cargada");
+  checkDb();
   const user = await getUser(username);
   if (typeof user !== "string") throw new Error("Nombre de usuario ya existe");
 
@@ -40,8 +39,7 @@ export async function registerUser({
 }
 
 export async function getUser(username: string) {
-  if (!db) throw new Error("Base de datos no ha sido cargada");
-
+  checkDb();
   const users = await db.select<User[]>(
     "SELECT * from users WHERE username = $1",
     [username]
@@ -53,8 +51,7 @@ export async function getUser(username: string) {
 }
 
 export async function userLogin(username: string, password: string) {
-  if (!db) throw new Error("Base de datos no ha sido cargada");
-
+  checkDb();
   const user = await getUser(username);
   if (typeof user === "string") throw new Error(user);
   const hashedPassword = user.password;
@@ -69,7 +66,7 @@ export async function userLogin(username: string, password: string) {
 }
 
 export async function getCredentials(username: string) {
-  if (!db) throw new Error("Base de datos no ha sido cargada");
+  checkDb();
   const credentials = await db.select<Credential[]>(
     "SELECT * FROM credentials WHERE user_username = ?",
     [username]
@@ -84,7 +81,7 @@ export async function createCredential({
   name,
   user_username,
 }: Omit<Credential, "id">): Promise<Credential> {
-  if (!db) throw new Error("Base de datos no ha sido cargada");
+  checkDb();
 
   let encrypted = (await invoke("encrypt", { password })) as string;
   const { lastInsertId } = await db.execute(
@@ -102,7 +99,7 @@ export async function createCredential({
 }
 
 export async function deleteCredential(id: number) {
-  if (!db) throw new Error("Base de datos no ha sido cargada");
+  checkDb();
   const { rowsAffected } = await db.execute(
     "DELETE FROM credentials WHERE id = ?",
     [id]
@@ -118,8 +115,7 @@ export async function editCredential({
   name,
   user_username,
 }: Credential): Promise<Credential> {
-  if (!db) throw new Error("Base de datos no ha sido cargada");
-
+  checkDb();
   let encrypted = (await invoke("encrypt", { password })) as string;
   const { rowsAffected } = await db.execute(
     "UPDATE credentials SET username = $1, name = $2, password = $3, url = $4 WHERE id = $5",
