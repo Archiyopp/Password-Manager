@@ -1,17 +1,8 @@
 import { LoginTwoTone } from "@mui/icons-material";
-import {
-  Avatar,
-  Box,
-  Button,
-  Checkbox,
-  FormControlLabel,
-  Grid,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Avatar, Box, Button, TextField, Typography } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { userLogin, load } from "../services";
+import { userLogin } from "../services";
 import { useAuthContext } from "../contexts/auth";
 
 export function Login() {
